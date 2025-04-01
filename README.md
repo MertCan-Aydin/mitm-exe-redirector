@@ -1,5 +1,5 @@
 
-# 📜 Proje Açıklaması: Phthon ile Otomatikleştirilmiş MITM Sarlırısı
+# 📜 Proje Açıklaması: Python ile Otomatikleştirilmiş MITM Sarlırısı
 
 ## 🔍 **Projenin Amacı**
 Bu araç, **siber güvenlik uzmanlarına** ve **etik hacker'lara** yönelik geliştirilmiş bir eğitim simülasyonudur. Temel işlevleri:
